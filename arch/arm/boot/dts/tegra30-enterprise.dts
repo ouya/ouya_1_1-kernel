@@ -1,0 +1,8 @@
+/dts-v1/;
+
+/include/ "tegra30.dtsi"
+
+/ {
+	model = "NVIDIA Tegra30 Enterprise evaluation board";
+	compatible = "nvidia,enterprise", "nvidia,tegra30";
+};

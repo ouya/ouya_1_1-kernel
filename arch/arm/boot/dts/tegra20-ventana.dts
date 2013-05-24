@@ -1,0 +1,8 @@
+/dts-v1/;
+
+/include/ "tegra20.dtsi"
+
+/ {
+	model = "NVIDIA Tegra2 Ventana evaluation board";
+	compatible = "nvidia,ventana", "nvidia,tegra20";
+};
