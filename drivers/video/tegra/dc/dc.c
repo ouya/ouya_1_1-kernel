@@ -93,6 +93,8 @@ void tegra_dc_clk_enable(struct tegra_dc *dc)
 void tegra_dc_clk_disable(struct tegra_dc *dc)
 {
 	if (tegra_is_clk_enabled(dc->clk)) {
+		/* flush posted write operation */
+		tegra_dc_readl(dc, DC_CMD_STATE_CONTROL);
 		clk_disable(dc->clk);
 		tegra_dvfs_set_rate(dc->clk, 0);
 	}
@@ -1120,11 +1122,8 @@ static irqreturn_t tegra_dc_irq(int irq, void *ptr)
 	u32 val;
 
 	if (!nvhost_module_powered_ext(nvhost_get_parent(dc->ndev))) {
-		WARN(1, "IRQ when DC not powered!\n");
-		tegra_dc_io_start(dc);
 		status = tegra_dc_readl(dc, DC_CMD_INT_STATUS);
 		tegra_dc_writel(dc, status, DC_CMD_INT_STATUS);
-		tegra_dc_io_end(dc);
 		return IRQ_HANDLED;
 	}
 

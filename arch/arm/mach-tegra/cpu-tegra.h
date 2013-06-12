@@ -1,7 +1,7 @@
 /*
  * arch/arm/mach-tegra/cpu-tegra.h
  *
- * Copyright (c) 2011-2012, NVIDIA Corporation.
+ * Copyright (c) 2011-2013, NVIDIA CORPORATION.  All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ unsigned long tegra_cpu_highest_speed(void);
 int tegra_throttle_init(struct mutex *cpu_lock);
 void tegra_throttle_exit(void);
 bool tegra_is_throttling(void);
-unsigned int tegra_throttle_governor_speed(unsigned int requested_speed);
+unsigned long tegra_throttle_governor_speed(unsigned long requested_speed);
 int tegra_throttle_debug_init(struct dentry *cpu_tegra_debugfs_root);
 void tegra_throttling_enable(bool enable);
 #else
@@ -43,8 +43,8 @@ static inline void tegra_throttle_exit(void)
 {}
 static inline bool tegra_is_throttling(void)
 { return false; }
-static inline unsigned int tegra_throttle_governor_speed(
-	unsigned int requested_speed)
+static inline unsigned long tegra_throttle_governor_speed(
+	unsigned long requested_speed)
 { return requested_speed; }
 static inline int tegra_throttle_debug_init(
 	struct dentry *cpu_tegra_debugfs_root)

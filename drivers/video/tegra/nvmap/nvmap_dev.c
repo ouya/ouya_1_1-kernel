@@ -889,8 +889,7 @@ static void nvmap_vma_open(struct vm_area_struct *vma)
 	BUG_ON(!priv);
 
 	atomic_inc(&priv->count);
-	if(priv->handle)
-		nvmap_usecount_inc(priv->handle);
+	nvmap_usecount_inc(priv->handle);
 }
 
 static void nvmap_vma_close(struct vm_area_struct *vma)
@@ -898,10 +897,7 @@ static void nvmap_vma_close(struct vm_area_struct *vma)
 	struct nvmap_vma_priv *priv = vma->vm_private_data;
 
 	if (priv) {
-		if (priv->handle) {
-			BUG_ON(priv->handle->usecount == 0);
-			nvmap_usecount_dec(priv->handle);
-		}
+		nvmap_usecount_dec(priv->handle);
 		if (!atomic_dec_return(&priv->count)) {
 			if (priv->handle)
 				nvmap_handle_put(priv->handle);

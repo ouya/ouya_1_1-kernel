@@ -109,6 +109,14 @@ static void baseband_reset(void)
 	gpio_set_value(MODEM_PWR_ON, 1);
 }
 
+static void baseband_stop(void)
+{
+	/* Baseband power off */
+	pr_info("%s\n", __func__);
+	gpio_set_value(MODEM_PWR_ON, 0);
+	mdelay(1);
+}
+
 static int baseband_init(void)
 {
 	int ret;
@@ -135,6 +143,7 @@ static const struct tegra_modem_operations baseband_operations = {
 	.init = baseband_init,
 	.start = baseband_start,
 	.reset = baseband_reset,
+	.stop = baseband_stop,
 };
 
 static struct tegra_usb_modem_power_platform_data baseband_pdata = {

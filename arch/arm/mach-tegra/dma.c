@@ -109,6 +109,12 @@
 /* Maximum dma transfer size */
 #define TEGRA_DMA_MAX_TRANSFER_SIZE		0x10000
 
+#ifdef CONFIG_ARCH_TEGRA_2x_SOC
+#define TEGRA_DMA_GLOBAL_PAUSING		20
+#else
+#define TEGRA_DMA_GLOBAL_PAUSING		5
+#endif
+
 static struct clk *dma_clk;
 
 static const unsigned int ahb_addr_wrap_table[8] = {
@@ -186,7 +192,7 @@ static void pause_dma(bool wait_for_burst_complete)
 	spin_lock(&enable_lock);
 	writel(0, general_dma_addr + APB_DMA_GEN);
 	if (wait_for_burst_complete)
-		udelay(20);
+		udelay(TEGRA_DMA_GLOBAL_PAUSING);
 }
 
 static void resume_dma(void)

@@ -328,6 +328,17 @@ static int host1x_channel_read_3d_reg(
 	struct nvhost_job *job;
 	u32 syncval;
 	int err;
+	int indmodid = 0;
+	int class = 0;
+
+	if (strcmp(channel->dev->name, "gr3d") == 0) {
+		indmodid = NV_HOST_MODULE_GR3D;
+		class = NV_GRAPHICS_3D_CLASS_ID;
+	} else if (strcmp(channel->dev->name, "mpe") == 0) {
+		indmodid = NV_HOST_MODULE_MPE;
+		class = NV_VIDEO_ENCODE_MPEG_CLASS_ID;
+	} else
+		return -EINVAL;
 
 	if (hwctx && hwctx->has_timedout)
 		return -ETIMEDOUT;
@@ -396,9 +407,9 @@ static int host1x_channel_read_3d_reg(
 				->restore_size),
 			to_host1x_hwctx(channel->cur_ctx)->restore_phys);
 
-	/* Switch to 3D - wait for it to complete what it was doing */
+	/* Switch to client - wait for it to complete what it was doing */
 	nvhost_cdma_push(&channel->cdma,
-		nvhost_opcode_setclass(NV_GRAPHICS_3D_CLASS_ID, 0, 0),
+		nvhost_opcode_setclass(class, 0, 0),
 		nvhost_opcode_imm_incr_syncpt(
 			host1x_uclass_incr_syncpt_cond_op_done_v(),
 			p->syncpt));
@@ -407,10 +418,10 @@ static int host1x_channel_read_3d_reg(
 			host1x_uclass_wait_syncpt_base_r(), 1),
 		nvhost_class_host_wait_syncpt_base(p->syncpt,
 			p->waitbase, 1));
-	/*  Tell 3D to send register value to FIFO */
+	/*  Tell client to send register value to FIFO */
 	nvhost_cdma_push(&channel->cdma,
 		nvhost_opcode_nonincr(host1x_uclass_indoff_r(), 1),
-		nvhost_class_host_indoff_reg_read(NV_HOST_MODULE_GR3D,
+		nvhost_class_host_indoff_reg_read(indmodid,
 			offset, false));
 	nvhost_cdma_push(&channel->cdma,
 		nvhost_opcode_imm(host1x_uclass_inddata_r(), 0),

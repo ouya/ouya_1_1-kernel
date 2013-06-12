@@ -34,6 +34,7 @@
 #include <linux/pm_qos_params.h>
 #include <mach/usb_phy.h>
 #include <linux/regulator/consumer.h>
+#include <linux/irq.h>
 #include "board.h"
 #include "board-enterprise.h"
 #include "devices.h"
@@ -1084,6 +1085,9 @@ static int xmm_power_driver_resume(struct device *dev)
 static int xmm_power_suspend_noirq(struct device *dev)
 {
 	unsigned long flags;
+	struct platform_device *pdev = to_platform_device(dev);
+	struct baseband_power_platform_data *data
+		= pdev->dev.platform_data;
 
 	pr_debug("%s\n", __func__);
 	spin_lock_irqsave(&xmm_lock, flags);
@@ -1095,12 +1099,19 @@ static int xmm_power_suspend_noirq(struct device *dev)
 		return -EBUSY;
 	}
 	spin_unlock_irqrestore(&xmm_lock, flags);
+	irq_set_irq_type(gpio_to_irq(data->modem.xmm.ipc_ap_wake)
+			, IRQF_TRIGGER_FALLING);
 	return 0;
 }
 
 static int xmm_power_resume_noirq(struct device *dev)
 {
+	struct platform_device *pdev = to_platform_device(dev);
+	struct baseband_power_platform_data *data
+		= pdev->dev.platform_data;
 	pr_debug("%s\n", __func__);
+	irq_set_irq_type(gpio_to_irq(data->modem.xmm.ipc_ap_wake)
+			, IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING);
 	return 0;
 }
 

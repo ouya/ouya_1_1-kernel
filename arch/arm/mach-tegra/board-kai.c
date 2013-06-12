@@ -128,6 +128,50 @@ static struct balanced_throttle throttle_list[] = {
 #endif
 };
 
+#ifdef CONFIG_TEGRA_SKIN_THROTTLE
+/* Skin timer trips */
+static struct tegra_thermal_timer_trip skin_therm_timer_trips[] = {
+	/* duration,  temp, hysteresis */
+	{       600, 48000, 5000 },
+	{      1800, 45000, 5000 },
+	{        -1, 43000, 8000 }, /* The duration -1 equals infinity. */
+};
+
+/* Skin active throttle size must be one. */
+static struct throttle_table throttle_freqs_tskin_active_0[] = {
+	      /*    CPU,    CBUS,    SCLK,     EMC */
+	      { 1200000,  NO_CAP,  NO_CAP,  NO_CAP },
+};
+
+static struct throttle_table throttle_freqs_tskin_active_1[] = {
+	      /*    CPU,    CBUS,    SCLK,     EMC */
+	      { 1000000,  NO_CAP,  NO_CAP,  NO_CAP },
+};
+
+static struct skin_therm_active_throttle skin_therm_actives[] = {
+	{
+		.bthrot = {
+			.id = BALANCED_THROTTLE_ID_SKIN + 1,
+			.throt_tab_size =
+				ARRAY_SIZE(throttle_freqs_tskin_active_0),
+			.throt_tab = throttle_freqs_tskin_active_0,
+		},
+		.trip_temp = 33000,
+		.hysteresis = 0,
+	},
+	{
+		.bthrot = {
+			.id = BALANCED_THROTTLE_ID_SKIN + 2,
+			.throt_tab_size =
+				ARRAY_SIZE(throttle_freqs_tskin_active_1),
+			.throt_tab = throttle_freqs_tskin_active_1,
+		},
+		.trip_temp = 38000,
+		.hysteresis = 0,
+	},
+};
+#endif
+
 /* All units are in millicelsius */
 static struct tegra_thermal_data thermal_data = {
 	.shutdown_device_id = THERMAL_DEVICE_ID_NCT_EXT,
@@ -148,6 +192,13 @@ static struct tegra_thermal_data thermal_data = {
 #ifdef CONFIG_TEGRA_SKIN_THROTTLE
 	.skin_device_id = THERMAL_DEVICE_ID_SKIN,
 	.temp_throttle_skin = 43000,
+	.skin_timer_trip_data = {
+		.trips = skin_therm_timer_trips,
+		.trip_size = ARRAY_SIZE(skin_therm_timer_trips),
+	},
+
+	.skin_actives = skin_therm_actives,
+	.skin_active_size = ARRAY_SIZE(skin_therm_actives),
 #endif
 };
 

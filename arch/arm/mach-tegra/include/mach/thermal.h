@@ -1,7 +1,7 @@
 /*
  * arch/arm/mach-tegra/thermal.h
  *
- * Copyright (C) 2010-2012 NVIDIA Corporation.
+ * Copyright (c) 2010-2013, NVIDIA CORPORATION.  All rights reserved.
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -39,6 +39,22 @@ struct skin_therm_est_subdevice {
 	long coeffs[HIST_LEN];
 };
 
+struct skin_therm_active_throttle;
+
+struct tegra_thermal_timer_trip {
+	long duration; /* in sec, the duration -1 equals infinity. */
+	long trip_temp;
+	long hysteresis;
+	bool tripped;
+};
+
+struct tegra_thermal_timer_trip_data {
+	struct tegra_thermal_timer_trip *trips;
+	int trip_size;
+	int trip_cur;
+	struct delayed_work work;
+};
+
 /* All units in millicelsius */
 struct tegra_thermal_data {
 	enum thermal_device_id shutdown_device_id;
@@ -58,10 +74,19 @@ struct tegra_thermal_data {
 #endif
 #ifdef CONFIG_TEGRA_SKIN_THROTTLE
 	enum thermal_device_id skin_device_id;
+
+	/* If skin_timer_trip_data.trip_size is greater than zero,
+	 * skin_timer_trip_data will be used instead of temp_throttle_skin for
+	 * skin thermal throttling. */
 	long temp_throttle_skin;
+	struct tegra_thermal_timer_trip_data skin_timer_trip_data;
+
 	int tc1_skin;
 	int tc2_skin;
 	int passive_delay_skin;
+
+	struct skin_therm_active_throttle *skin_actives;
+	int skin_active_size;
 
 	long skin_temp_offset;
 	long skin_period;
@@ -93,7 +118,7 @@ struct throttle_table {
 	unsigned long emc_freq;
 };
 
-#define NO_CAP			0 /* no cap. only use for cbus, sclk, emc. */
+#define NO_CAP			(ULONG_MAX) /* no cap */
 #define CPU_THROT_LOW		0 /* lowest throttle freq. only use for CPU */
 #define MAX_THROT_TABLE_SIZE	(32)
 
@@ -101,13 +126,20 @@ struct balanced_throttle {
 	enum balanced_throttle_id id;
 
 	unsigned long cur_state;
-	unsigned int cpu_cap_freq;
 	struct thermal_cooling_device *cdev;
 
 	struct list_head node;
 
 	int throt_tab_size;
 	struct throttle_table *throt_tab;
+};
+
+struct skin_therm_active_throttle {
+	struct balanced_throttle bthrot;
+
+	long trip_temp;
+	long hysteresis;
+	bool tripped;
 };
 
 #ifdef CONFIG_TEGRA_THERMAL_THROTTLE

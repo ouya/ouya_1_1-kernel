@@ -23,6 +23,7 @@
 #include <linux/spinlock_types.h>
 #include <linux/spinlock.h>
 #include <linux/stringify.h>
+#include <linux/module.h>
 #include <asm/bug.h>
 #include <asm/io.h>
 #include <asm/string.h>
@@ -42,6 +43,15 @@
 
 /* Bug 995270 */
 #define HACK_LA_FIFO 1
+
+#if HACK_LA_FIFO
+/* divisor and multiplier for DC LA workaround */
+static int la_dc_fifo_div = 4;
+static int la_dc_fifo_mult = 1;
+
+module_param(la_dc_fifo_div, int, 0644);
+module_param(la_dc_fifo_mult, int, 0644);
+#endif
 
 static struct dentry *latency_debug_dir;
 static DEFINE_SPINLOCK(safety_lock);
@@ -140,7 +150,6 @@ int tegra_set_latency_allowance(enum tegra_la_id id,
 	unsigned long reg_write;
 	unsigned int fifo_size_in_atoms;
 	int bytes_per_atom = normal_atom_size;
-	const int fifo_scale = 4;		/* 25% of the FIFO */
 	struct la_client_info *ci;
 	int idx = id_to_index[id];
 
@@ -153,8 +162,13 @@ int tegra_set_latency_allowance(enum tegra_la_id id,
 #if HACK_LA_FIFO
 	/* pretend that our FIFO is only as deep as the lowest fullness
 	 * we expect to see */
-	if (id >= ID(DISPLAY_0A) && id <= ID(DISPLAY_HCB))
-		fifo_size_in_atoms /= fifo_scale;
+	if (id >= ID(DISPLAY_0A) && id <= ID(DISPLAY_HCB)) {
+		la_debug("%s: scaling client by %d/%d\n", __func__,
+			la_dc_fifo_mult, la_dc_fifo_div);
+
+		fifo_size_in_atoms = (fifo_size_in_atoms * la_dc_fifo_mult) /
+			la_dc_fifo_div;
+	}
 #endif
 
 	if (bandwidth_in_mbps == 0) {

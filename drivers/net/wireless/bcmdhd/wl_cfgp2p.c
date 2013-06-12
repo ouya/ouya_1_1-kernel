@@ -641,8 +641,8 @@ wl_cfgp2p_enable_discovery(struct wl_priv *wl, struct net_device *dev,
 	}
 set_ie:
 	ret = wl_cfgp2p_set_management_ie(wl, dev,
-	            wl_to_p2p_bss_bssidx(wl, P2PAPI_BSSCFG_DEVICE),
-	            VNDR_IE_PRBREQ_FLAG, ie, ie_len);
+				wl_cfgp2p_find_idx(wl, dev),
+				VNDR_IE_PRBREQ_FLAG, ie, ie_len);
 
 	if (unlikely(ret < 0)) {
 		CFGP2P_ERR(("set probreq ie occurs error %d\n", ret));
@@ -1766,6 +1766,8 @@ wl_cfgp2p_set_p2p_ps(struct wl_priv *wl, struct net_device *ndev, char* buf, int
 				WLC_SET_PM, &pm, sizeof(pm), true);
 			if (unlikely(ret)) {
 				CFGP2P_ERR(("error (%d)\n", ret));
+			} else {
+				wl_cfg80211_update_power_mode(ndev);
 			}
 		}
 	}

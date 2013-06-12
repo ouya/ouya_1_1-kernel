@@ -847,7 +847,7 @@ static int tegra3_cpu_clk_set_rate(struct clk *c, unsigned long rate)
 			return -ENOSYS;
 		else if ((!c->dvfs->dvfs_rail->reg) &&
 			  (clk_get_rate_locked(c) < rate)) {
-			WARN(1, "Increasing CPU rate while regulator is not"
+			pr_warn("Increasing CPU rate while regulator is not"
 				" ready may overclock CPU\n");
 			return -ENOSYS;
 		}
@@ -4460,6 +4460,7 @@ struct clk tegra_list_clks[] = {
 	SHARED_CLK("cap.cbus",	"cap.cbus",		NULL,	&tegra_clk_cbus, NULL,  0, SHARED_CEILING),
 	SHARED_CLK("cap.throttle.cbus", "cap_throttle",	NULL,	&tegra_clk_cbus, NULL,  0, SHARED_CEILING),
 	SHARED_CLK("cap.profile.cbus", "profile.cbus",	NULL,	&tegra_clk_cbus, NULL,  0, SHARED_CEILING),
+	SHARED_CLK("floor.profile.cbus", "profile.cbus", NULL,	&tegra_clk_cbus, NULL,  0, 0),
 	SHARED_CLK("floor.cbus", "floor.cbus",		NULL,	&tegra_clk_cbus, NULL,  0, 0),
 };
 

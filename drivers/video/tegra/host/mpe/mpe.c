@@ -26,6 +26,9 @@
 #include "t20/t20.h"
 #include "chip_support.h"
 #include "nvhost_memmgr.h"
+#include "nvhost_job.h"
+#include "nvhost_acm.h"
+#include "mpe.h"
 
 #include <linux/slab.h>
 

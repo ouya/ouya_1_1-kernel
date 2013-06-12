@@ -57,7 +57,7 @@ static inline void tf_smc_generic_call(
 	cpumask_t local_cpu_mask = CPU_MASK_NONE;
 
 	cpu_set(0, local_cpu_mask);
-	sched_getaffinity(0, &saved_cpu_mask);
+	cpumask_copy(&saved_cpu_mask, tsk_cpus_allowed(current));
 	ret = sched_setaffinity(0, &local_cpu_mask);
 	if (ret != 0)
 		dprintk(KERN_ERR "sched_setaffinity #1 -> 0x%lX", ret);

@@ -1,7 +1,7 @@
 /*
  * arch/arm/mach-tegra/tegra3_usb_phy.c
  *
- * Copyright (c) 2012, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2013, NVIDIA CORPORATION.  All rights reserved.
  *
  *
  * This software is licensed under the terms of the GNU General Public
@@ -1458,6 +1458,10 @@ static int utmi_phy_power_off(struct tegra_usb_phy *phy)
 			pr_err("%s: timeout waiting for USB_USBSTS_HCH\n", __func__);
 		}
 		utmip_setup_pmc_wake_detect(phy);
+
+		val = readl(base + USB_SUSP_CTRL);
+		val &= ~USB_WAKE_ON_CNNT_EN_DEV;
+		writel(val, base + USB_SUSP_CTRL);
 	}
 
 	if (!phy->pdata->u_data.host.hot_plug) {
@@ -1727,14 +1731,21 @@ static int utmi_phy_resume(struct tegra_usb_phy *phy)
 	int status = 0;
 	unsigned long val;
 	void __iomem *base = phy->regs;
+	int port_connected = 0;
 
 	DBG("%s(%d) inst:[%d]\n", __func__, __LINE__, phy->inst);
 	if (phy->pdata->op_mode == TEGRA_USB_OPMODE_HOST) {
-		if (phy->port_speed < USB_PHY_PORT_SPEED_UNKNOWN) {
+		val = readl(base + USB_PORTSC);
+		port_connected = val & USB_PORTSC_CCS;
+
+		if ((phy->port_speed < USB_PHY_PORT_SPEED_UNKNOWN) &&
+			port_connected) {
 			utmi_phy_restore_start(phy);
 			usb_phy_bringup_host_controller(phy);
 			utmi_phy_restore_end(phy);
 		} else {
+			utmip_phy_disable_pmc_bus_ctrl(phy);
+
 			/* device is plugged in when system is in LP0 */
 			/* bring up the controller from LP0*/
 			val = readl(base + USB_USBCMD);
@@ -2591,9 +2602,7 @@ static inline void ulpi_null_phy_set_tristate(bool enable)
 	tegra_pinmux_set_tristate(TEGRA_PINGROUP_ULPI_DATA6, tristate);
 	tegra_pinmux_set_tristate(TEGRA_PINGROUP_ULPI_DATA7, tristate);
 	tegra_pinmux_set_tristate(TEGRA_PINGROUP_ULPI_NXT, tristate);
-
-	if (enable)
-		tegra_pinmux_set_tristate(TEGRA_PINGROUP_ULPI_DIR, tristate);
+	tegra_pinmux_set_tristate(TEGRA_PINGROUP_ULPI_DIR, tristate);
 #endif
 }
 
@@ -2788,6 +2797,7 @@ static int ulpi_null_phy_restore(struct tegra_usb_phy *phy)
 			pr_warn("phy restore timeout\n");
 			return 1;
 		}
+		mdelay(1);
 	}
 
 	return 0;
@@ -2968,11 +2978,6 @@ static int ulpi_null_phy_resume(struct tegra_usb_phy *phy)
 		/* enable ULPI pinmux bypass */
 		ulpi_pinmux_bypass(phy, true);
 		udelay(5);
-#ifndef CONFIG_ARCH_TEGRA_2x_SOC
-		/* remove DIR tristate */
-		tegra_pinmux_set_tristate(TEGRA_PINGROUP_ULPI_DIR,
-					  TEGRA_TRI_NORMAL);
-#endif
 	}
 	return 0;
 }

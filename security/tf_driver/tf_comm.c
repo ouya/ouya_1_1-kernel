@@ -1461,7 +1461,7 @@ int tf_send_receive(struct tf_comm *comm,
 
 #ifdef CONFIG_SMP
 	cpu_set(0, local_cpu_mask);
-	sched_getaffinity(0, &saved_cpu_mask);
+	cpumask_copy(&saved_cpu_mask, tsk_cpus_allowed(current));
 	ret_affinity = sched_setaffinity(0, &local_cpu_mask);
 	if (ret_affinity != 0)
 		dprintk(KERN_ERR "sched_setaffinity #1 -> 0x%lX", ret_affinity);

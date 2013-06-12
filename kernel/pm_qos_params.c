@@ -147,6 +147,27 @@ static struct pm_qos_object cpu_freq_max_pm_qos = {
 	.type = PM_QOS_MIN,
 };
 
+static BLOCKING_NOTIFIER_HEAD(cbus_freq_min_notifier);
+static struct pm_qos_object cbus_freq_min_pm_qos = {
+	.requests = PLIST_HEAD_INIT(cbus_freq_min_pm_qos.requests),
+	.notifiers = &cbus_freq_min_notifier,
+	.name = "cbus_freq_min",
+	.target_value = PM_QOS_CBUS_FREQ_MIN_DEFAULT_VALUE,
+	.default_value = PM_QOS_CBUS_FREQ_MIN_DEFAULT_VALUE,
+	.type = PM_QOS_MAX,
+};
+
+
+static BLOCKING_NOTIFIER_HEAD(cbus_freq_max_notifier);
+static struct pm_qos_object cbus_freq_max_pm_qos = {
+	.requests = PLIST_HEAD_INIT(cbus_freq_max_pm_qos.requests),
+	.notifiers = &cbus_freq_max_notifier,
+	.name = "cbus_freq_max",
+	.target_value = PM_QOS_CBUS_FREQ_MAX_DEFAULT_VALUE,
+	.default_value = PM_QOS_CBUS_FREQ_MAX_DEFAULT_VALUE,
+	.type = PM_QOS_MIN,
+};
+
 
 static struct pm_qos_object *pm_qos_array[] = {
 	&null_pm_qos,
@@ -156,7 +177,9 @@ static struct pm_qos_object *pm_qos_array[] = {
 	&min_online_cpus_pm_qos,
 	&max_online_cpus_pm_qos,
 	&cpu_freq_min_pm_qos,
-	&cpu_freq_max_pm_qos
+	&cpu_freq_max_pm_qos,
+	&cbus_freq_min_pm_qos,
+	&cbus_freq_max_pm_qos
 };
 
 static ssize_t pm_qos_power_write(struct file *filp, const char __user *buf,

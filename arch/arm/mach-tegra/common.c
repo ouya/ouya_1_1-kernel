@@ -30,11 +30,13 @@
 #include <linux/sched.h>
 #include <linux/cpufreq.h>
 #include <linux/of.h>
+#include <linux/sys_soc.h>
 
 #include <asm/hardware/cache-l2x0.h>
 #include <asm/system.h>
 
 #include <mach/gpio.h>
+#include <mach/hardware.h>
 #include <mach/iomap.h>
 #include <mach/pinmux.h>
 #include <mach/powergate.h>

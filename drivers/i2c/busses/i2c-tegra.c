@@ -1092,7 +1092,6 @@ static void tegra_i2c_early_suspend(struct early_suspend *es)
 
 	rt_mutex_lock(&i2c_dev->dev_lock);
 
-	i2c_dev->is_suspended = true;
 	tegra_i2c_clock_disable(i2c_dev);
 
 	rt_mutex_unlock(&i2c_dev->dev_lock);
@@ -1114,8 +1113,6 @@ static void tegra_i2c_early_resume(struct early_suspend *es)
 		rt_mutex_unlock(&i2c_dev->dev_lock);
 		return;
 	}
-
-	i2c_dev->is_suspended = false;
 
 	rt_mutex_unlock(&i2c_dev->dev_lock);
 }

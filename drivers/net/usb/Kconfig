@@ -460,6 +460,7 @@ config USB_VL600
 
 config USB_NET_RAW_IP
 	tristate "RAW-IP Driver for XMM6260 modems"
+	depends on USB_USBNET
 	help
 	  Choose this option if you have a XMM6260 modem device with RAW-IP suport.
 

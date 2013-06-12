@@ -312,12 +312,10 @@ int tegra_dc_set_fb_mode(struct tegra_dc *dc,
 				"Display timing doesn't meet restrictions.\n");
 		return -EINVAL;
 	}
-#if 0
-	dev_info(&dc->ndev->dev, "Using mode %dx%d pclk=%d href=%d vref=%d\n",
+	dev_dbg(&dc->ndev->dev, "Using mode %dx%d pclk=%d href=%d vref=%d\n",
 		mode.h_active, mode.v_active, mode.pclk,
 		mode.h_ref_to_sync, mode.v_ref_to_sync
 	);
-#endif
 
 #ifndef CONFIG_TEGRA_HDMI_74MHZ_LIMIT
 	/* Double the pixel clock and update v_active only for

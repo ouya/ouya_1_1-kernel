@@ -61,6 +61,8 @@ static u32 system_timer;
 #define timer_readl(reg) \
 	__raw_readl((u32)timer_reg_base + (reg))
 
+static DEFINE_SPINLOCK(read_persistent_clock_lock);
+
 static int tegra_timer_set_next_event(unsigned long cycles,
 					 struct clock_event_device *evt)
 {
@@ -157,6 +159,9 @@ void read_persistent_clock(struct timespec *ts)
 {
 	u64 delta;
 	struct timespec *tsp = &persistent_ts;
+	unsigned long flags;
+
+	spin_lock_irqsave(&read_persistent_clock_lock, flags);
 
 	last_persistent_ms = persistent_ms;
 	persistent_ms = tegra_rtc_read_ms();
@@ -164,6 +169,8 @@ void read_persistent_clock(struct timespec *ts)
 
 	timespec_add_ns(tsp, delta * NSEC_PER_MSEC);
 	*ts = *tsp;
+
+	spin_unlock_irqrestore(&read_persistent_clock_lock, flags);
 }
 
 static irqreturn_t tegra_timer_interrupt(int irq, void *dev_id)
