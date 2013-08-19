@@ -1554,6 +1554,20 @@ static void _tegra_dc_controller_disable(struct tegra_dc *dc)
 	trace_printk("%s:disabled\n", dc->ndev->name);
 }
 
+u8 tegra_dc_get_content_type(struct tegra_dc *dc)
+{
+	return dc->content_type;
+}
+
+void tegra_dc_set_content_type(struct tegra_dc *dc, u8 content_type)
+{
+	mutex_lock(&dc->lock);
+
+	dc->content_type = content_type;
+
+	mutex_unlock(&dc->lock);
+}
+
 void tegra_dc_stats_enable(struct tegra_dc *dc, bool enable)
 {
 #if 0 /* underflow interrupt is already enabled by dc reset worker */

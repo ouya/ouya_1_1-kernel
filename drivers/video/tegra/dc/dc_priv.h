@@ -166,6 +166,7 @@ struct tegra_dc {
 	u32				one_shot_delay_ms;
 	struct delayed_work		one_shot_work;
 	s64				frame_end_timestamp;
+	u8				content_type;
 };
 
 #define print_mode_info(dc, mode) do {					\
@@ -371,6 +372,8 @@ bool tegra_dc_stats_get(struct tegra_dc *dc);
 u32 tegra_dc_read_checksum_latched(struct tegra_dc *dc);
 void tegra_dc_enable_crc(struct tegra_dc *dc);
 void tegra_dc_disable_crc(struct tegra_dc *dc);
+u8 tegra_dc_get_content_type(struct tegra_dc *dc);
+void tegra_dc_set_content_type(struct tegra_dc *dc, u8 content_type);
 
 void tegra_dc_set_out_pin_polars(struct tegra_dc *dc,
 				const struct tegra_dc_out_pin *pins,

@@ -321,6 +321,38 @@ static ssize_t smart_panel_show(struct device *device,
 
 static DEVICE_ATTR(smart_panel, S_IRUGO, smart_panel_show, NULL);
 
+static ssize_t hdmi_content_type_show(struct device *device,
+	struct device_attribute *attr, char *buf)
+{
+	int content_type;
+	struct platform_device *ndev = to_platform_device(device);
+	struct tegra_dc *dc = platform_get_drvdata(ndev);
+
+	content_type = tegra_dc_get_content_type(dc);
+
+	return snprintf(buf, PAGE_SIZE, "%d\n", content_type);
+}
+
+static ssize_t hdmi_content_type_store(struct device *dev,
+	struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct platform_device *ndev = to_platform_device(dev);
+	struct tegra_dc *dc = platform_get_drvdata(ndev);
+	int content_type;
+	int e;
+
+	e = kstrtoint(buf, 10, &content_type);
+	if (e)
+		return e;
+
+	tegra_dc_set_content_type(dc, content_type);
+
+	return count;
+}
+
+static DEVICE_ATTR(hdmi_content_type, S_IRUGO|S_IWUSR,
+		hdmi_content_type_show, hdmi_content_type_store);
+
 void __devexit tegra_dc_remove_sysfs(struct device *dev)
 {
 	struct nvhost_device *ndev = to_nvhost_device(dev);
@@ -332,6 +364,7 @@ void __devexit tegra_dc_remove_sysfs(struct device *dev)
 	device_remove_file(dev, &dev_attr_enable);
 	device_remove_file(dev, &dev_attr_stats_enable);
 	device_remove_file(dev, &dev_attr_crc_checksum_latched);
+	device_remove_file(dev, &dev_attr_hdmi_content_type);
 
 	if (dc->out->stereo) {
 		device_remove_file(dev, &dev_attr_stereo_orientation);
@@ -357,6 +390,7 @@ void tegra_dc_create_sysfs(struct device *dev)
 	error |= device_create_file(dev, &dev_attr_enable);
 	error |= device_create_file(dev, &dev_attr_stats_enable);
 	error |= device_create_file(dev, &dev_attr_crc_checksum_latched);
+	error |= device_create_file(dev, &dev_attr_hdmi_content_type);
 
 	if (dc->out->stereo) {
 		error |= device_create_file(dev, &dev_attr_stereo_orientation);
