@@ -45,6 +45,9 @@
 #include <asm/ptrace.h>
 #include <asm/irq_regs.h>
 
+#include <mach/iomap.h>
+#include <linux/io.h>
+
 /* Whether we react on sysrq keys or just ignore them */
 static int __read_mostly sysrq_enabled = SYSRQ_DEFAULT_ENABLE;
 static bool __read_mostly sysrq_always_enabled;
@@ -286,6 +289,25 @@ static struct sysrq_key_op sysrq_showstate_blocked_op = {
 	.action_msg	= "Show Blocked State",
 	.enable_mask	= SYSRQ_ENABLE_DUMP,
 };
+static void sysrq_reboot_to_bootloader(int key)
+{
+	#define	BOOTLOADER_MODE		BIT(30)
+	#define	PMC_SCRATCH0		0x50
+	#define IO_ADDRESS(n) ((void __iomem *) IO_TO_VIRT(n))
+	void __iomem *reset = IO_ADDRESS(TEGRA_PMC_BASE + 0x00);
+	u32 reg;
+	reg = readl_relaxed(reset + PMC_SCRATCH0);
+	reg |= BOOTLOADER_MODE;
+	writel_relaxed(reg, reset + PMC_SCRATCH0);
+	reg |= 0x10;
+        writel_relaxed(reg, reset);
+}
+static struct sysrq_key_op sysrq_reboot_bootloader = {
+	.handler	= sysrq_reboot_to_bootloader,
+	.help_msg	= "reboot-bootloader-mode(X)",
+	.action_msg	= "Reboot to bootloader",
+	.enable_mask	= SYSRQ_ENABLE_DUMP,
+};
 
 #ifdef CONFIG_TRACING
 #include <linux/ftrace.h>
@@ -448,8 +470,7 @@ static struct sysrq_key_op *sysrq_key_table[36] = {
 	/* v: May be registered for frame buffer console restore */
 	NULL,				/* v */
 	&sysrq_showstate_blocked_op,	/* w */
-	/* x: May be registered on ppc/powerpc for xmon */
-	NULL,				/* x */
+	&sysrq_reboot_bootloader,	/* x */
 	/* y: May be registered on sparc64 for global register dump */
 	NULL,				/* y */
 	&sysrq_ftrace_dump_op,		/* z */
