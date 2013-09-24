@@ -291,22 +291,42 @@ static struct sysrq_key_op sysrq_showstate_blocked_op = {
 };
 static void sysrq_reboot_to_bootloader(int key)
 {
-	#define	BOOTLOADER_MODE		BIT(30)
-	#define	PMC_SCRATCH0		0x50
-	#define IO_ADDRESS(n) ((void __iomem *) IO_TO_VIRT(n))
-	void __iomem *reset = IO_ADDRESS(TEGRA_PMC_BASE + 0x00);
-	u32 reg;
-	reg = readl_relaxed(reset + PMC_SCRATCH0);
-	reg |= BOOTLOADER_MODE;
-	writel_relaxed(reg, reset + PMC_SCRATCH0);
-	reg |= 0x10;
+  #define  BOOTLOADER_MODE    BIT(30)
+  #define  PMC_SCRATCH0    0x50
+  #define IO_ADDRESS(n) ((void __iomem *) IO_TO_VIRT(n))
+  void __iomem *reset = IO_ADDRESS(TEGRA_PMC_BASE + 0x00);
+  u32 reg;
+  reg = readl_relaxed(reset + PMC_SCRATCH0);
+  reg |= BOOTLOADER_MODE;
+  writel_relaxed(reg, reset + PMC_SCRATCH0);
+  reg |= 0x10;
         writel_relaxed(reg, reset);
 }
 static struct sysrq_key_op sysrq_reboot_bootloader = {
-	.handler	= sysrq_reboot_to_bootloader,
-	.help_msg	= "reboot-bootloader-mode(X)",
-	.action_msg	= "Reboot to bootloader",
-	.enable_mask	= SYSRQ_ENABLE_DUMP,
+  .handler  = sysrq_reboot_to_bootloader,
+  .help_msg  = "reboot-bootloader-mode(X)",
+  .action_msg  = "Reboot to bootloader",
+  .enable_mask  = SYSRQ_ENABLE_DUMP,
+};
+
+static void sysrq_reboot_to_recovery(int key)
+{
+  #define  RECOVERY_MODE    BIT(31)
+  #define  PMC_SCRATCH0    0x50
+  #define IO_ADDRESS(n) ((void __iomem *) IO_TO_VIRT(n))
+  void __iomem *reset = IO_ADDRESS(TEGRA_PMC_BASE + 0x00);
+  u32 reg;
+  reg = readl_relaxed(reset + PMC_SCRATCH0);
+  reg |= RECOVERY_MODE;
+  writel_relaxed(reg, reset + PMC_SCRATCH0);
+  reg |= 0x10;
+        writel_relaxed(reg, reset);
+}
+static struct sysrq_key_op sysrq_reboot_recovery = {
+  .handler  = sysrq_reboot_to_recovery,
+  .help_msg  = "reboot-recovery-mode(X)",
+  .action_msg  = "Reboot to recovery",
+  .enable_mask  = SYSRQ_ENABLE_DUMP,
 };
 
 #ifdef CONFIG_TRACING
@@ -470,9 +490,8 @@ static struct sysrq_key_op *sysrq_key_table[36] = {
 	/* v: May be registered for frame buffer console restore */
 	NULL,				/* v */
 	&sysrq_showstate_blocked_op,	/* w */
-	&sysrq_reboot_bootloader,	/* x */
-	/* y: May be registered on sparc64 for global register dump */
-	NULL,				/* y */
+    &sysrq_reboot_bootloader,   /* x */
+    &sysrq_reboot_recovery,     /* y */
 	&sysrq_ftrace_dump_op,		/* z */
 };
 

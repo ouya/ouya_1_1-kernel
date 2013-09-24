@@ -45,6 +45,9 @@
 #include <net/bluetooth/bluetooth.h>
 #include <net/bluetooth/hci_core.h>
 
+#undef BT_DBG
+#define BT_DBG(fmt, ...)	printk(fmt "\n", ##__VA_ARGS__)
+
 static void hci_le_connect(struct hci_conn *conn)
 {
 	struct hci_dev *hdev = conn->hdev;
@@ -315,7 +318,7 @@ static void hci_conn_idle(unsigned long arg)
 {
 	struct hci_conn *conn = (void *) arg;
 
-	BT_DBG("conn %p mode %d", conn, conn->mode);
+	//BT_DBG("conn %p mode %d", conn, conn->mode);
 
 	hci_conn_enter_sniff_mode(conn);
 }
@@ -758,7 +761,7 @@ void hci_conn_enter_active_mode(struct hci_conn *conn, __u8 force_active)
 {
 	struct hci_dev *hdev = conn->hdev;
 
-	BT_DBG("conn %p mode %d", conn, conn->mode);
+	//BT_DBG("conn %p mode %d", conn, conn->mode);
 
 	if (test_bit(HCI_RAW, &hdev->flags))
 		return;
@@ -786,7 +789,7 @@ void hci_conn_enter_sniff_mode(struct hci_conn *conn)
 {
 	struct hci_dev *hdev = conn->hdev;
 
-	BT_DBG("conn %p mode %d", conn, conn->mode);
+	//BT_DBG("conn %p mode %d", conn, conn->mode);
 
 	if (test_bit(HCI_RAW, &hdev->flags))
 		return;

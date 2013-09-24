@@ -112,6 +112,7 @@ struct hidp_conninfo {
 	__u16    product;
 	__u16    version;
 	char     name[128];
+	__u16    battery;
 };
 
 struct hidp_connlist_req {

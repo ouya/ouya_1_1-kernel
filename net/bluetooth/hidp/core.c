@@ -120,6 +120,7 @@ static void __hidp_copy_session(struct hidp_session *session, struct hidp_connin
 	ci->vendor  = 0x0000;
 	ci->product = 0x0000;
 	ci->version = 0x0000;
+	ci->battery = 0x0000;
 
 	if (session->input) {
 		ci->vendor  = session->input->id.vendor;
@@ -135,6 +136,7 @@ static void __hidp_copy_session(struct hidp_session *session, struct hidp_connin
 		ci->vendor  = session->hid->vendor;
 		ci->product = session->hid->product;
 		ci->version = session->hid->version;
+		ci->battery = session->hid->battery;
 		strncpy(ci->name, session->hid->name, 128);
 	}
 }
@@ -608,6 +610,11 @@ static void hidp_recv_ctrl_frame(struct hidp_session *session,
 		break;
 
 	case HIDP_TRANS_DATA:
+		if (hdr == (HIDP_TRANS_DATA | HIDP_DATA_RTYPE_INPUT)) {
+			if ((skb->len == 8) && (session->hid)) {
+				session->hid->battery = (unsigned int)skb->data[1];
+			}
+		}
 		free_skb = hidp_process_data(session, skb, param);
 		break;
 

@@ -518,6 +518,7 @@ struct hid_device {							/* device report descriptor */
 	struct dentry *debug_events;
 	struct list_head debug_list;
 	wait_queue_head_t debug_wait;
+	__u32 battery;							/* Battery level */
 };
 
 static inline void *hid_get_drvdata(struct hid_device *hdev)
