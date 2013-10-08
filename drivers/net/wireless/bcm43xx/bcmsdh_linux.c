@@ -179,7 +179,7 @@ int bcmsdh_probe_bcmdhd(struct device *dev)
 	irq_flags =
 		IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL | IORESOURCE_IRQ_SHAREABLE;
 #else
-	 irq_flags = IRQF_TRIGGER_FALLING;
+	 irq_flags = IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHLEVEL | IORESOURCE_IRQ_SHAREABLE;
 #endif /* HW_OOB */
 
 	/* Get customer specific OOB IRQ parametres: IRQ number as IRQ type */

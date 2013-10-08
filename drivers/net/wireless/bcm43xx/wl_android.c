@@ -414,6 +414,7 @@ int wl_android_wifi_on(struct net_device *dev)
 		g_wifi_on = TRUE;
 	}
 
+	wldev_iovar_setint(dev, "mimo_bw_cap", 1);
 exit:
 	dhd_net_if_unlock(dev);
 

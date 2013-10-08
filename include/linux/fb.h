@@ -311,6 +311,12 @@ struct fb_con2fbmap {
 
 
 enum {
+	/* screen: blanked, hsync: off, vsync: off */
+	FB_BLANK_SUSPEND       = VESA_NO_BLANKING - 2,
+
+	/* screen: unblanked, hsync: on, vsync: on */
+	FB_BLANK_RESUME        = VESA_NO_BLANKING - 1,
+
 	/* screen: unblanked, hsync: on,  vsync: on */
 	FB_BLANK_UNBLANK       = VESA_NO_BLANKING,
 

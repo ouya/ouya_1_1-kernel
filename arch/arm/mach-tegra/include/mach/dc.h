@@ -404,6 +404,7 @@ struct tegra_dc_out {
 
 struct tegra_dc;
 struct nvmap_handle_ref;
+struct nvhost_device;
 
 struct tegra_dc_csc {
 	unsigned short yof;
@@ -534,6 +535,11 @@ void tegra_dc_blank(struct tegra_dc *dc);
 
 void tegra_dc_enable(struct tegra_dc *dc);
 void tegra_dc_disable(struct tegra_dc *dc);
+
+#ifdef CONFIG_PM
+int tegra_dc_suspend(struct nvhost_device *ndev, pm_message_t state);
+int tegra_dc_resume(struct nvhost_device *ndev);
+#endif
 
 u32 tegra_dc_get_syncpt_id(const struct tegra_dc *dc, int i);
 u32 tegra_dc_incr_syncpt_max(struct tegra_dc *dc, int i);

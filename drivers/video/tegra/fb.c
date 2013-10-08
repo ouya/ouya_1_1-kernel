@@ -270,7 +270,16 @@ static int tegra_fb_blank(int blank, struct fb_info *info)
 		dev_dbg(&tegra_fb->ndev->dev, "blank - powerdown\n");
 		tegra_dc_disable(tegra_fb->win->dc);
 		return 0;
-
+#ifdef CONFIG_PM
+    case FB_BLANK_RESUME:
+        dev_dbg(&tegra_fb->ndev->dev, "blank - resume\n");
+        tegra_dc_resume(tegra_fb->ndev);
+        return 0;
+    case FB_BLANK_SUSPEND:
+        dev_dbg(&tegra_fb->ndev->dev, "blank - suspend\n");
+        tegra_dc_suspend(tegra_fb->ndev, PMSG_SUSPEND);
+        return 0;
+#endif
 	default:
 		return -ENOTTY;
 	}
