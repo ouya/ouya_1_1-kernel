@@ -46,6 +46,7 @@
 #include <linux/slab.h>
 #include <linux/kernel.h>
 #include <linux/pm_runtime.h>
+#include <linux/ratelimit.h>
 
 #define DRIVER_VERSION		"22-Aug-2005"
 
@@ -322,8 +323,23 @@ static enum skb_state defer_bh(struct usbnet *dev, struct sk_buff *skb,
 void usbnet_defer_kevent (struct usbnet *dev, int work)
 {
 	set_bit (work, &dev->flags);
-	if (!schedule_work (&dev->kevent))
-		netdev_err(dev->net, "kevent %d may have been dropped\n", work);
+	if (!schedule_work (&dev->kevent)) {
+	// BEGIN OUYA
+	// Rate limit these error messages.  The allocation failure that triggers this message
+	// is already rate limited, but under heavy cpu load, the number of times that
+	// usbnet attempts to defer the kevent becomes too excessive to print each time.
+	// (ex: >5000 lines in the kernel log for a single "batch" of failures - this causes
+	// massive system slowdown).
+	//
+	// Note: I'm keeping the general format that netdev_err translates into, but I can't seem to access the bus_id
+	// field, and so this message does not have it.  Everything else is the same as netdev_err
+        printk_ratelimited(KERN_ERR "%s: " "%s: ""kevent %d may have been dropped\n" ,
+                        dev_driver_string((dev->net)->dev.parent),
+                        netdev_name(dev->net),
+                        work);
+//		netdev_err(dev->net, "kevent %d may have been dropped\n", work);
+    // END OUYA
+	}
 	else
 		netdev_dbg(dev->net, "kevent %d scheduled\n", work);
 }

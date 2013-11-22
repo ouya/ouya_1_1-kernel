@@ -62,6 +62,8 @@
 #include <asm/div64.h>
 #include "internal.h"
 
+#define DEBUG_PAGE_ALLOCATION_FAILURE 0
+
 #ifdef CONFIG_USE_PERCPU_NUMA_NODE_ID
 DEFINE_PER_CPU(int, numa_node);
 EXPORT_PER_CPU_SYMBOL(numa_node);
@@ -1796,9 +1798,11 @@ void warn_alloc_failed(gfp_t gfp_mask, int order, const char *fmt, ...)
 	pr_warning("%s: page allocation failure: order:%d, mode:0x%x\n",
 		   current->comm, order, gfp_mask);
 
+#if DEBUG_PAGE_ALLOCATION_FAILURE
 	dump_stack();
 	if (!should_suppress_show_mem())
 		show_mem(filter);
+#endif
 }
 
 static inline int
