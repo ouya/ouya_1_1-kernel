@@ -1242,7 +1242,8 @@ static int utmi_phy_irq(struct tegra_usb_phy *phy)
 
 	if (phy->pdata->u_data.host.hot_plug) {
 		val = readl(base + USB_SUSP_CTRL);
-		if ((val  & USB_PHY_CLK_VALID_INT_STS)) {
+		if ((val  & USB_PHY_CLK_VALID_INT_STS) &&
+		    (val  & USB_PHY_CLK_VALID_INT_ENB)) {
 			val &= ~USB_PHY_CLK_VALID_INT_ENB |
 					USB_PHY_CLK_VALID_INT_STS;
 			writel(val , (base + USB_SUSP_CTRL));
@@ -1499,8 +1500,13 @@ static int utmi_phy_power_off(struct tegra_usb_phy *phy)
 				val |= USB_PORTSC_WKCN;
 			writel(val, base + USB_PORTSC);
 
-			val = readl(base + USB_SUSP_CTRL);
-			val |= USB_PHY_CLK_VALID_INT_ENB;
+			if (val & USB_PORTSC_CCS) {
+				val = readl(base + USB_SUSP_CTRL);
+				val &= ~USB_PHY_CLK_VALID_INT_ENB;
+			} else {
+				val = readl(base + USB_SUSP_CTRL);
+				val |= USB_PHY_CLK_VALID_INT_ENB;
+			}
 			writel(val, base + USB_SUSP_CTRL);
 		} else {
 			/* Disable PHY clock valid interrupts while going into suspend*/
