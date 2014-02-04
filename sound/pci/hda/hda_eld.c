@@ -501,6 +501,78 @@ void snd_print_channel_allocation(int spk_alloc, char *buf, int buflen)
 	buf[j] = '\0';	/* necessary when j == 0 */
 }
 
+static const char *eld_versoin_names[32] = {
+    "reserved",
+    "reserved",
+    "CEA-861D or below",
+    [3 ... 30] = "reserved",
+    [31] = "partial"
+};
+static const char *cea_edid_version_names[8] = {
+    "no CEA EDID Timing Extension block present",
+    "CEA-861",
+    "CEA-861-A",
+    "CEA-861-B, C or D",
+    [4 ... 7] = "reserved"
+};
+
+static void printk_hdmi_print_sad_info(int i, struct cea_sad *a)
+{
+	char buf[SND_PRINT_RATES_ADVISED_BUFSIZE];
+    
+    printk(KERN_INFO "HDMI: sad%d_coding_type\t[0x%x] %s\n",
+           i, a->format, cea_audio_coding_type_names[a->format]);
+    printk(KERN_INFO "HDMI: sad%d_channels\t\t%d\n", i, a->channels);
+    
+	snd_print_pcm_rates(a->rates, buf, sizeof(buf));
+    printk(KERN_INFO "HDMI: sad%d_rates\t\t[0x%x]%s\n", i, a->rates, buf);
+    
+	if (a->format == AUDIO_CODING_TYPE_LPCM) {
+		snd_print_pcm_bits(a->sample_bits, buf, sizeof(buf));
+        printk(KERN_INFO "HDMI: sad%d_bits\t\t[0x%x]%s\n",
+               i, a->sample_bits, buf);
+	}
+    
+	if (a->max_bitrate)
+        printk(KERN_INFO "HDMI: sad%d_max_bitrate\t%d\n",
+               i, a->max_bitrate);
+    
+	if (a->profile)
+        printk(KERN_INFO "HDMI: sad%d_profile\t\t%d\n", i, a->profile);
+}
+
+static void printk_hdmi_print_eld_info(struct hdmi_eld *e)
+{
+	char buf[SND_PRINT_CHANNEL_ALLOCATION_ADVISED_BUFSIZE];
+	int i;
+    
+    printk(KERN_INFO "HDMI: monitor_present\t\t%d\n", e->monitor_present);
+    printk(KERN_INFO "HDMI: eld_valid\t\t%d\n", e->eld_valid);
+	if (!e->eld_valid)
+		return;
+    printk(KERN_INFO "HDMI: monitor_name\t\t%s\n", e->monitor_name);
+    printk(KERN_INFO "HDMI: connection_type\t\t%s\n",
+           eld_connection_type_names[e->conn_type]);
+    printk(KERN_INFO "HDMI: eld_version\t\t[0x%x] %s\n", e->eld_ver,
+           eld_versoin_names[e->eld_ver]);
+    printk(KERN_INFO "HDMI: edid_version\t\t[0x%x] %s\n", e->cea_edid_ver,
+           cea_edid_version_names[e->cea_edid_ver]);
+    printk(KERN_INFO "HDMI: manufacture_id\t\t0x%x\n", e->manufacture_id);
+    printk(KERN_INFO "HDMI: product_id\t\t0x%x\n", e->product_id);
+    printk(KERN_INFO "HDMI: port_id\t\t\t0x%llx\n", (long long)e->port_id);
+    printk(KERN_INFO "HDMI: support_hdcp\t\t%d\n", e->support_hdcp);
+    printk(KERN_INFO "HDMI: support_ai\t\t%d\n", e->support_ai);
+    printk(KERN_INFO "HDMI: audio_sync_delay\t%d\n", e->aud_synch_delay);
+    
+	snd_print_channel_allocation(e->spk_alloc, buf, sizeof(buf));
+    printk(KERN_INFO "HDMI: speakers\t\t[0x%x]%s\n", e->spk_alloc, buf);
+    
+    printk(KERN_INFO "HDMI: sad_count\t\t%d\n", e->sad_count);
+    
+	for (i = 0; i < e->sad_count; i++)
+		printk_hdmi_print_sad_info(i, e->sad + i);
+}
+
 void snd_hdmi_show_eld(struct hdmi_eld *e)
 {
 	int i;
@@ -517,6 +589,8 @@ void snd_hdmi_show_eld(struct hdmi_eld *e)
 
 	for (i = 0; i < e->sad_count; i++)
 		hdmi_show_short_audio_desc(e->sad + i);
+
+    printk_hdmi_print_eld_info(e);
 }
 
 #ifdef CONFIG_PROC_FS
@@ -529,7 +603,6 @@ static void hdmi_print_sad_info(int i, struct cea_sad *a,
 	snd_iprintf(buffer, "sad%d_coding_type\t[0x%x] %s\n",
 			i, a->format, cea_audio_coding_type_names[a->format]);
 	snd_iprintf(buffer, "sad%d_channels\t\t%d\n", i, a->channels);
-
 	snd_print_pcm_rates(a->rates, buf, sizeof(buf));
 	snd_iprintf(buffer, "sad%d_rates\t\t[0x%x]%s\n", i, a->rates, buf);
 
@@ -547,26 +620,13 @@ static void hdmi_print_sad_info(int i, struct cea_sad *a,
 		snd_iprintf(buffer, "sad%d_profile\t\t%d\n", i, a->profile);
 }
 
+
 static void hdmi_print_eld_info(struct snd_info_entry *entry,
 				struct snd_info_buffer *buffer)
 {
 	struct hdmi_eld *e = entry->private_data;
 	char buf[SND_PRINT_CHANNEL_ALLOCATION_ADVISED_BUFSIZE];
 	int i;
-	static char *eld_versoin_names[32] = {
-		"reserved",
-		"reserved",
-		"CEA-861D or below",
-		[3 ... 30] = "reserved",
-		[31] = "partial"
-	};
-	static char *cea_edid_version_names[8] = {
-		"no CEA EDID Timing Extension block present",
-		"CEA-861",
-		"CEA-861-A",
-		"CEA-861-B, C or D",
-		[4 ... 7] = "reserved"
-	};
 
 	snd_iprintf(buffer, "monitor_present\t\t%d\n", e->monitor_present);
 	snd_iprintf(buffer, "eld_valid\t\t%d\n", e->eld_valid);

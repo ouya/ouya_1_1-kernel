@@ -336,6 +336,13 @@ __fat_fs_error(struct super_block *sb, int report, const char *fmt, ...)
 	__fat_fs_error(sb, __ratelimit(&MSDOS_SB(sb)->ratelimit), fmt , ## args)
 void fat_msg(struct super_block *sb, const char *level, const char *fmt, ...)
 	__attribute__ ((format (printf, 3, 4))) __cold;
+
+void __fat_msg_ratelimit(struct super_block *sb, int report, const char *level, const char *fmt, ...)
+	__attribute__ ((format (printf, 4, 5))) __cold;
+
+#define fat_msg_ratelimit(sb, level, fmt, args...) \
+    __fat_msg_ratelimit(sb, __ratelimit(&MSDOS_SB(sb)->ratelimit), level, fmt, ## args)
+
 extern int fat_clusters_flush(struct super_block *sb);
 extern int fat_chain_add(struct inode *inode, int new_dclus, int nr_cluster);
 extern void fat_time_fat2unix(struct msdos_sb_info *sbi, struct timespec *ts,

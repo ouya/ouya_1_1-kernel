@@ -622,7 +622,7 @@ retry:
 
 	bh = sb_bread(sb, i_pos >> sbi->dir_per_block_bits);
 	if (!bh) {
-		fat_msg(sb, KERN_ERR, "unable to read inode block "
+		fat_msg_ratelimit(sb, KERN_ERR, "unable to read inode block "
 		       "for updating (i_pos %lld)", i_pos);
 		return -EIO;
 	}

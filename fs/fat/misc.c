@@ -48,6 +48,21 @@ EXPORT_SYMBOL_GPL(__fat_fs_error);
  * fat_msg() - print preformated FAT specific messages. Every thing what is
  * not fat_fs_error() should be fat_msg().
  */
+void __fat_msg_ratelimit(struct super_block *sb, int report, const char *level, const char *fmt, ...)
+{
+	struct va_format vaf;
+	va_list args;
+
+    if(report)
+    {
+        va_start(args, fmt);
+        vaf.fmt = fmt;
+        vaf.va = &args;
+        printk("%sFAT-fs (%s): %pV\n", level, sb->s_id, &vaf);
+        va_end(args);
+    }
+}
+
 void fat_msg(struct super_block *sb, const char *level, const char *fmt, ...)
 {
 	struct va_format vaf;
